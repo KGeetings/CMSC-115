@@ -14,7 +14,7 @@ weekday_map = {0:"Monday",
                }       
                                   
 
-theFile = open("DJI.csv", "r")
+theFile = open("Assignments/DJI.csv", "r")
 
 dayGainLoss= {}
 
