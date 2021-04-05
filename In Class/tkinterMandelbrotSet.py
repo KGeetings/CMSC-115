@@ -10,6 +10,10 @@ cellSize = 5
 image = tkinter.Canvas(master, width=canvasWidth, height=canvasHeight)
 image.pack()
 
+def isInMandelbrot():
+    
+    return False
+
 for row in range(canvasHeight//cellSize):
     for col in range(canvasWidth//cellSize):
         if isInMandelbrot(row, col):
