@@ -77,16 +77,16 @@
 #student(lastname ='Gates', firstname ='John')
 
 #dictX = {}
-#dictY = {"blue":"5", "numb":"To the pain", "color": "Yellow"}
+dictY = {"blue":"5", "numb":"To the pain", "color": "Yellow"}
 
 #dictY["color"] = "I'M BLUE dabadeedaba die"
 #del dictY["color"]
 #print(dictX)
 #print(dictY["blue"])
 #print(dictY.items())
-#print(dictY.keys())
+print(dictY.keys())
 #print(dictY.values())
-#print(len(dictY))
+print(len(dictY))
 
 #if "blue" in dictY:
     #print("Hey, blue is here")
