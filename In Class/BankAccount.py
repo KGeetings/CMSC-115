@@ -40,5 +40,5 @@ b.addMonthlyInterest()
 
 a.transfer(b, 600)
 
-print(f"{a.getOwner} has ${a.getBalance}.")
-print(f"{b.getOwner} has ${b.getBalance}.")
+print(f"{a.getOwner()} has ${a.getBalance()}.")
+print(f"{b.getOwner()} has ${b.getBalance()}.")
