@@ -1,0 +1,34 @@
+5. Airline Ticket 
+	variables
+		Start - take off location
+		Destination - landing location
+		DateOfTravel - what day is your flight scheduled
+		Class - first class, business, or economy
+		Price - how much your ticket costs
+		Time - what time your flight is projected to take off
+		NameOfPerson - name of the person who purchased the tickets
+		Seat - number of available seats
+	methods
+		Cancel - flight won't work
+		Add - add a person to your ticket purchase
+		Rebook - change to a different flight
+		Move - change seat within class
+		Upgrade - change seat in different class
+		mileApply - discount on flyer miles
+		
+6. OnlineBook
+	variables	
+		Name - the name of the book
+		Publisher - name of publisher of book
+		Author - who wrote the book
+		Price - how much the book costs
+		ISBN - the book identifier
+		Pages - how many pages the book has
+	methods
+		getEdition - get different editions of the book
+		discount - apply discount to book
+		adjustPrice - set the base Price
+		bookByAuthor - get different books by same Author
+		bookByPublisher - get different books by same Publisher
+		bookByGenre - get different books from the same genre
+		
