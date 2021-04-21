@@ -5,11 +5,11 @@ import time
 class Grid_sim:
 
     # Number of cells high and wide:
-    WIDTH = 40
-    HEIGHT = 30
+    WIDTH = 60
+    HEIGHT = 40
     
     # Size of each cell, in pixels
-    SCALE = 20
+    SCALE = 10
     
     # (Maximum) number of frames per second
     FPS = 20
@@ -44,9 +44,9 @@ class Grid_sim:
             self.data_grid.append([])
             for col in range(self.WIDTH):
                 if random.randrange(4) == 0:
-                    self.data_grid[row].append(True)
+                    self.data_grid[row].append(True)        
                 else:
-                    self.data_grid[row].append(False)        
+                    self.data_grid[row].append(False)
         
     def make_canvas_grid(self):
         """ This method creates a "canvas grid".  This is a 2-D list of "rectangle"
@@ -61,16 +61,28 @@ class Grid_sim:
                         (col+1)*self.SCALE,(row+1)*self.SCALE, fill="white", outline="black")
                 self.canvas_grid[row].append(rectangle)
         self.canvas.update()
-        
+
+    def count_neighbors(self, row, col):
+        n = 0
+        for x in range(-1,2):
+            for y in range(-1,2):
+                row_to_check = row + y
+                col_to_check = col + x
+                if row_to_check == row and col_to_check == col:
+                    continue
+                if row_to_check > 0 and row_to_check < self.HEIGHT and col_to_check > 0 and col_to_check < self.WIDTH and self.data_grid[row_to_check][col_to_check] == True:
+                    n += 1
+        return n
+
     def update_grid(self):
         # Update the data grid
         next_gen = []
-
+        
         for r in range(self.HEIGHT):
             next_gen.append([])
             for c in range(self.WIDTH):
-                alive_neighbors = self.count_neighbors(r,c)
-
+                alive_neighbors = self.count_neighbors(r, c)
+                
                 if self.data_grid[r][c] == True:
                     if alive_neighbors == 2 or alive_neighbors == 3:
                         this_cell = True
@@ -81,21 +93,18 @@ class Grid_sim:
                         this_cell = True
                     else:
                         this_cell = False
-
+                
                 next_gen[r].append(this_cell)
-                   
-        self.data_grid = next_gen    
+                
+        self.data_grid = next_gen
         
         # Update the canvas grid, based on what's in the data grid
         for r in range(self.HEIGHT):
             for c in range(self.WIDTH):
-                color = "black"
-                if self.data_grid[r][c] == 0: color = "white"
-                if self.data_grid[r][c] == 1: color = "green"
-                if self.data_grid[r][c] == 2: color = "blue"
-                if self.data_grid[r][c] == 3: color = "yellow"
-                if self.data_grid[r][c] == 4: color = "purple"
-                if self.data_grid[r][c] == 5: color = "red"
+                if self.data_grid[r][c] == True:
+                    color = "white"
+                else:
+                    color = "black"
                 self.canvas.itemconfig(self.canvas_grid[r][c], fill=color, outline="black")
             
             
