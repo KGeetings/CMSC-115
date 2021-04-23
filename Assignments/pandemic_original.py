@@ -1,39 +1,31 @@
 import tkinter
 import random
-import pylab
-import numpy as np
 
-WIDTH = 40                  # How many cells wide the region is, default 40
-HEIGHT = 30                 # How many cells tall the region is, default 30
-                            # Note that going larger makes each day take longer. If you want to go bigger than 150 x 100 or so,
-                            # do it in steps so that you can gauge how slow your computer gets
+WIDTH = 40                  # How many cells wide the region is
+HEIGHT = 30                 # How many cells tall the region is
+                            # Note that going larger makes each day take longer.
+                            # If you want to go bigger than 150 x 100 or so,
+                            # do it in steps so that you can gauge how slow your
+                            # computer gets
 CELL_PIXEL_SIZE = 12        # Size of each cell on screen, in pixels
 
-SCREEN_UPDATE_FREQUENCY = 1 # How often to redraw the screen.  Making this 5 or 10 will cause the screen to redraw only every 5 or 10
+SCREEN_UPDATE_FREQUENCY = 1 # How often to redraw the screen.  Making this 5 or 10
+                            # will cause the screen to redraw only every 5 or 10
                             # days, speeding up the run-time, slightly.
 
 STARTING_INFECTED = 4       # How many "patient zero"s are there in your population?
 
 POPULATION_DENSITY = .2    # Fraction of cells have a person in them
 
-SYMPTOM_CHANCE = .3        # Chance that people who are infected will develop symptoms (per day)
+SYMPTOM_CHANCE = .3        # Chance that people who are infected will develop
+                           # symptoms (per day)
 
 MORTALITY_RATE = .02       # Fraction of people (with symptoms) who will die from it
     
 INFECTION_LENGTH = 6       # How many days the infection lasts
 
-CONTAGION_FACTOR = .2       # If you come into contact with someone who is contagious, how likely are you to get it?
-
-#global variables that are incremented later
-max_symp_people = 0
-total_people = 0
-final_recovered_people = 0
-final_dead_people = 0
-running_clock = 0
-list_susceptible = []
-list_infected = []
-list_recovered = []
-list_deceased = []
+CONTAGION_FACTOR = .2       # If you come into contact with someone who is contagious,
+                            # how likely are you to get it?
 
 class Person:
     # There are five states a person can be in:
@@ -194,18 +186,7 @@ class Region:
                     self.person_list.append(person)
                 else:
                     self.grid[row].append("empty")
-
-        #counts total people
-        global total_people
-        for row in range(HEIGHT):
-            for col in range(WIDTH):
-                person = Person(self, row, col)
-                if self.grid[row][col] == "empty":
-                    total_people = total_people
-                else:
-                    total_people += 1
-        print(f"total people: {total_people}")
-
+        
         # Start off with a handful a "patient zero"s.
         for x in range(STARTING_INFECTED):
             unlucky_person = random.choice(self.person_list)
@@ -251,8 +232,7 @@ class Region:
                     if state == "infected":
                         color = "red"
                     elif state == "symptomatic":
-                        #default is brown
-                        color = "blue"
+                        color = "brown"
                     elif state == "recovered":
                         color = "green"
                     elif state == "dead":
@@ -267,75 +247,13 @@ class Region:
         self.canvas.update()
 
     def update_loop(self):
+        # update the clock
+        self.clock += 1
+        self.master.title("Pandemic Day " + str(self.clock))
+        
         # Call the update_grid method to go through each person object and 
         # update their status, move around, etc...
         self.update_grid()
-
-        #count number of infected people
-        infected_num = 0
-        for row in range(HEIGHT):
-            for col in range(WIDTH):
-                if self.grid[row][col] == "empty":
-                    infected_num = infected_num
-                else:
-                    state = self.grid[row][col].state
-                    if state == "infected":
-                        infected_num += 1
-                    else:
-                        infected_num = infected_num
-
-        #keeps count of the max symptomatic people
-        current_symp_people = 0
-        for row in range(HEIGHT):
-            for col in range(WIDTH):
-                if self.grid[row][col] == "empty":
-                    current_symp_people = current_symp_people
-                else:
-                    state = self.grid[row][col].state
-                    if state == "symptomatic":
-                        current_symp_people += 1
-                    else:
-                        current_symp_people = current_symp_people
-        global max_symp_people
-        if current_symp_people > max_symp_people:
-            max_symp_people = current_symp_people
-        
-        #appending lists of S-I-R-D
-        global list_susceptible
-        global list_infected
-        global list_recovered
-        global list_deceased
-        day_susceptible = 0
-        day_infected = 0
-        day_recovered = 0
-        day_deceased = 0
-
-        for row in range(HEIGHT):
-            for col in range(WIDTH):
-                if self.grid[row][col] == "empty":
-                    list_deceased = list_deceased
-                else:
-                    state = self.grid[row][col].state
-                    if state == "infected":
-                        day_infected += 1
-                    elif state == "symptomatic":
-                        day_infected += 1
-                    elif state == "recovered":
-                        day_recovered += 1
-                    elif state == "dead":
-                        day_deceased += 1
-                    else:
-                        day_susceptible += 1
-        list_susceptible.append(day_susceptible)
-        list_infected.append(day_infected)
-        list_recovered.append(day_recovered)
-        list_deceased.append(day_deceased)
-
-        # update the clock
-        global running_clock
-        running_clock += 1
-        self.clock += 1
-        self.master.title("Pandemic Day:" + str(self.clock) + " Infected:" + str(infected_num))
         
         # Setting Screen_update_frequency (at top) to 5 or 10 will make it run
         # (slightly) faster, for large simulations, but then you can't see
@@ -348,36 +266,7 @@ class Region:
         # loop.  If you want to exit the program after a while, put this line 
         # in an if statement so that it only runs while the clock is less than
         # some amount, or while there are still infected people, etc...
-        global final_recovered_people
-        global final_dead_people
-
-        #if statement to stop update (part 1)
-        if infected_num <= 0:
-            #counts final recovered people after the loop is finished
-            for row in range(HEIGHT):
-                for col in range(WIDTH):
-                    if self.grid[row][col] == "empty":
-                        final_recovered_people = final_recovered_people
-                    else:
-                        state = self.grid[row][col].state
-                        if state == "recovered":
-                            final_recovered_people += 1
-                        else:
-                            final_recovered_people = final_recovered_people
-            #counts final deceased people after the loop is finished
-            for row in range(HEIGHT):
-                for col in range(WIDTH):
-                    if self.grid[row][col] == "empty":
-                        final_dead_people = final_dead_people
-                    else:
-                        state = self.grid[row][col].state
-                        if state == "dead":
-                            final_dead_people += 1
-                        else:
-                            final_dead_people = final_dead_people
-            self.master.destroy()
-        else:
-            self.canvas.after(10, self.update_loop)
+        self.canvas.after(10, self.update_loop)
 
 # Create the region (call its init method), which will also create
 # the list of Person objects.
@@ -392,33 +281,3 @@ n.update_loop()
 # occuring until you do.  Without this, the window would update the first
 # time, and then exit the program.
 tkinter.mainloop()
-
-#tester code
-#print(f"Total people: {total_people}")
-#print(f"recovered people: {final_recovered_people}")
-#print(f"dead people: {final_dead_people}")
-
-#part 1 of the project ouput
-print(f"Max symptomatic people: {max_symp_people}")
-print(f"Final people who recovered: {(final_recovered_people / total_people) * 100:.2f}% \nFinal people who deceased: {(final_dead_people / total_people) * 100:.2f}%")
-
-#part 3 of the project
-x = []
-for i in range(running_clock):
-    x.append(i)
-y1 = list_susceptible
-y2 = list_infected
-y3 = list_recovered
-y4 = list_deceased
-
-pylab.plot(x, y1, '-b', label='Susceptible')
-pylab.plot(x, y2, '-r', label='Infected')
-pylab.plot(x, y3, '-g', label='Recovered')
-pylab.plot(x, y4, '-y', label='Deceased')
-pylab.xlim(0,running_clock)
-pylab.ylim(-1,300)
-pylab.xlabel("Time (days)")
-pylab.ylabel("Population (people)")
-pylab.title("S-I-R-D Model of Kenyon's Pandemic")
-pylab.legend(loc="upper right")
-pylab.show()
