@@ -14,10 +14,11 @@ SCREEN_UPDATE_FREQUENCY = 1 # How often to redraw the screen.  Making this 5 or 
                             # days, speeding up the run-time, slightly.
 
 STARTING_INFECTED = 4       # How many "patient zero"s are there in your population?
+STARTING_VACCINATED = 100    # How many vaccinated people are there in your population?
 
-POPULATION_DENSITY = .1    # Fraction of cells have a person in them
+POPULATION_DENSITY = .2    # Fraction of cells have a person in them
 
-SYMPTOM_CHANCE = .1        # Chance that people who are infected will develop
+SYMPTOM_CHANCE = .3        # Chance that people who are infected will develop
                            # symptoms (per day)
 
 MORTALITY_RATE = .02       # Fraction of people (with symptoms) who will die from it
@@ -27,16 +28,14 @@ INFECTION_LENGTH = 6       # How many days the infection lasts
 CONTAGION_FACTOR = .2       # If you come into contact with someone who is contagious,
                             # how likely are you to get it?
 
-max_symp_people = 0
-isRunning = False
-
 class Person:
     # There are five states a person can be in:
-    #   Susceptable:  They've never had it, and can get it
-    #   Infected:   They have it and are contagious, but don't know it
-    #   Symptomatic: They have it, and have symptoms, so they move around less
-    #   Recovered:  They're over it, no longer contagious, and can't get it again
-    #   Dead:  They died of the virus
+    #   Susceptable:    They've never had it, and can get it
+    #   Infected:       They have it and are contagious, but don't know it
+    #   Symptomatic:    They have it, and have symptoms, so they move around less
+    #   Recovered:      They're over it, no longer contagious, and can't get it again
+    #   Dead:           They died of the virus
+    #   Vaccinated:     They have been vaccinated with the Pfizer or Moderna vaccines
     
     # Each person object needs to "know" (have stored) their region, and
     # where in their region (row, column) they are located
@@ -75,8 +74,7 @@ class Person:
     def update(self):
         
         # Move around (How far? based on how healthy you feel.)
-        if self.state == "susceptable" or self.state == "infected"  or \
-                    self.state == "recovered":
+        if self.state == "susceptable" or self.state == "infected"  or self.state == "recovered" or self.state == "vaccinated":
             # Healthy-feeling people move 5 "steps"
             for i in range(5):
                 self.move()
@@ -125,6 +123,28 @@ class Person:
                 # Divide chance of contagion by 2 for each step away from the
                 # nearest infected person
                 contagion_chance = contagion_chance / 2
+
+        # If you're vaccinated, you have a 5% chance of getting infected
+        if self.state == "vaccinated":
+            # x is how likely you are to get it from someone at a given distance.
+            # We're assuming that the chance of getting it is cut in half with 
+            # each additional step away.  That is, if you have a 30% chance of 
+            # getting it if you're next to an infected person, you'll have a 15% 
+            # chance of getting it for each infected person 2 steps away
+            # and a 7.5% chance for each infected person 3 steps away, etc...
+            contagion_chance_vaccinated = CONTAGION_FACTOR * 0.05
+            # Calculating for up to 4 places out.  Kind of arbitrary how far to check.
+            for distance in range(4):
+                # count how many infected people are within a certain distance
+                num_infected_people = self.count_infected_neighbors(distance)
+                for i in range(num_infected_people):
+                    if random.random() < contagion_chance_vaccinated:
+                        self.state = "infected"
+                        self.days_left = INFECTION_LENGTH
+                        
+                # Divide chance of contagion by 2 for each step away from the
+                # nearest infected person
+                contagion_chance_vaccinated = contagion_chance_vaccinated / 2
     
     def move(self):
         # Make a list of all of the blank cells around me, then pick one to 
@@ -195,6 +215,11 @@ class Region:
             unlucky_person = random.choice(self.person_list)
             unlucky_person.state = "infected"
             unlucky_person.days_left = INFECTION_LENGTH
+        
+        # Start off with a handful a vaccinated people.
+        for x in range(STARTING_VACCINATED):
+            vaccinated_person = random.choice(self.person_list)
+            vaccinated_person.state = "vaccinated"
             
         # A parallel grid (2-D list) for storing "canvas rectangle" objects.
         # Again, you don't need to understand this part very well to use it.
@@ -235,11 +260,13 @@ class Region:
                     if state == "infected":
                         color = "red"
                     elif state == "symptomatic":
-                        color = "blue"      #default is brown
+                        color = "brown"
                     elif state == "recovered":
                         color = "green"
                     elif state == "dead":
                         color = "yellow"
+                    elif state == "vaccinated":
+                        color = "blue"
                     else:
                         color = "white"
                 # Now that I know what color, I can update the "rectangle" object
@@ -254,6 +281,7 @@ class Region:
         # update their status, move around, etc...
         self.update_grid()
 
+        #count number of infected people
         infected_num = 0
         for row in range(HEIGHT):
             for col in range(WIDTH):
@@ -266,24 +294,9 @@ class Region:
                     else:
                         infected_num = infected_num
 
-        current_symp_people = 0
-        for row in range(HEIGHT):
-            for col in range(WIDTH):
-                if self.grid[row][col] == "empty":
-                    current_symp_people = current_symp_people
-                else:
-                    state = self.grid[row][col].state
-                    if state == "symptomatic":
-                        current_symp_people += 1
-                    else:
-                        current_symp_people = current_symp_people
-        global max_symp_people
-        if current_symp_people > max_symp_people:
-            max_symp_people = current_symp_people
-
         # update the clock
         self.clock += 1
-        self.master.title("Pandemic Day " + str(self.clock))
+        self.master.title("Pandemic Day:" + str(self.clock) + " Infected:" + str(infected_num))
         
         # Setting Screen_update_frequency (at top) to 5 or 10 will make it run
         # (slightly) faster, for large simulations, but then you can't see
@@ -296,32 +309,22 @@ class Region:
         # loop.  If you want to exit the program after a while, put this line 
         # in an if statement so that it only runs while the clock is less than
         # some amount, or while there are still infected people, etc...
-        global isRunning
+        #if statement to stop update
         if infected_num <= 0:
-            print(f"While Population Density was {POPULATION_DENSITY} and Symptom Chance was {SYMPTOM_CHANCE}, the max symptomatic people was {max_symp_people}")
             self.master.destroy()
-            isRunning = False
         else:
             self.canvas.after(10, self.update_loop)
 
 # Create the region (call its init method), which will also create
 # the list of Person objects.
-#n = Region()
+n = Region()
 
 # Call the update_loop function for the first time, which will then take care 
 # of scheduling the next update call.
-for i in range(1,10):
-    for j in range(1,10):
-        if isRunning == False:
-            POPULATION_DENSITY = i/10
-            SYMPTOM_CHANCE = j/10
-            n = Region()
-            n.update_loop()
-            tkinter.mainloop()
-            isRunning = True
+n.update_loop()
 
 # This line asks the Window to enter a "waiting loop", which will wait until 
 # you close the application window, allowing on-screen updates to keep 
 # occuring until you do.  Without this, the window would update the first
 # time, and then exit the program.
-#tkinter.mainloop()
+tkinter.mainloop()
