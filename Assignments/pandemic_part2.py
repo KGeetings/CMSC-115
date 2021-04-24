@@ -322,7 +322,14 @@ for i in range(1,10):
             #            SYMPTOM_CHANCE = j/10
             n = Region()
             n.update_loop()
-            tkinter.mainloop()
+            while True:
+                try:
+                    tkinter.mainloop()
+                    break
+                except AttributeError:
+                    print("Oops! You should try running this script again!")
+                
+            
             #            isRunning = True
 
             # This line asks the Window to enter a "waiting loop", which will wait until 
