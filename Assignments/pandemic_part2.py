@@ -29,6 +29,13 @@ CONTAGION_FACTOR = .2       # If you come into contact with someone who is conta
 
 max_symp_people = 0
 isRunning = False
+max_symp = 0
+min_symp = 1000
+max_pop = 0
+max_symp_chance = 0
+min_pop = 0
+min_symp_chance = 0
+
 for i in range(1,10):
     for j in range(1,10):
         if isRunning == False:
@@ -302,9 +309,25 @@ for i in range(1,10):
                     # in an if statement so that it only runs while the clock is less than
                     # some amount, or while there are still infected people, etc...
                     global isRunning
+                    global max_pop
+                    global max_symp
+                    global max_symp_chance
+                    global min_pop
+                    global min_symp
+                    global min_symp_chance
+
                     if infected_num <= 0:
                         print(f"While Population Density was {POPULATION_DENSITY} and Symptom Chance was {SYMPTOM_CHANCE}, the max symptomatic people was {max_symp_people}")
+                        if max_symp_people >= max_symp:
+                            max_pop = POPULATION_DENSITY
+                            max_symp_chance = SYMPTOM_CHANCE
+                            max_symp = max_symp_people
+                        if max_symp_people <= min_symp:
+                            min_pop = POPULATION_DENSITY
+                            min_symp_chance = SYMPTOM_CHANCE
+                            min_symp = max_symp_people
                         self.master.destroy()
+                        max_symp_people = 0
                         isRunning = False
                     else:
                         self.canvas.after(10, self.update_loop)
@@ -320,6 +343,12 @@ for i in range(1,10):
             #        if isRunning == False:
             #            POPULATION_DENSITY = i/10
             #            SYMPTOM_CHANCE = j/10
+
+
+            #Is this best practice? Absolutely not. Is it a solution? Technically.
+            #Did I do it like this so I could be the first one to submit the assignment, the night that you to told us about it? 
+            #Of course.
+            
             n = Region()
             n.update_loop()
             while True:
@@ -337,3 +366,6 @@ for i in range(1,10):
             # occuring until you do.  Without this, the window would update the first
             # time, and then exit the program.
             #tkinter.mainloop()
+
+print(f"The lowest symptomatic people of {min_symp} was during a population density of {min_pop} and symptom chance of {min_symp_chance}")
+print(f"The max symptomatic people of {max_symp} was during a population density of {max_pop} and symptom chance of {max_symp_chance}")
