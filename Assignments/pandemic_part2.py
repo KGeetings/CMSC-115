@@ -353,7 +353,7 @@ for i in range(1,10):
             n.update_loop()
             while True:
                 try:
-                    tkinter.mainloop()
+                    n.canvas.mainloop()
                     break
                 except AttributeError:
                     print("Oops! You should try running this script again!")
